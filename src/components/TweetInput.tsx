@@ -60,20 +60,55 @@ export const TweetInput: React.FC = () => {
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         username: user.displayName,
       });
-      setTweetImage(null);
-      setTweetMsg("");
     }
+    setTweetImage(null);
+    setTweetMsg("");
   };
   return (
-    <div>
+    <>
       Feed
-      <Avatar
-        className={styles.tweet_avatar}
-        src={user.photoUrl}
-        onClick={async () => {
-          await auth.signOut();
-        }}
-      />
-    </div>
+      <form onSubmit={sendTweet}>
+        <div className={styles.tweet_form}>
+          <Avatar
+            className={styles.tweet_avatar}
+            src={user.photoUrl}
+            onClick={async () => {
+              await auth.signOut();
+            }}
+          />
+          <input
+            className={styles.tweet_input}
+            placeholder="What's happening?"
+            type="text"
+            autoFocus
+            value={tweetMsg}
+            onChange={(e) => setTweetMsg(e.target.value)}
+          />
+          <IconButton>
+            <label>
+              <AddAPhotoIcon
+                className={
+                  tweetImage ? styles.tweet_addIconLoaded : styles.tweet_addIcon
+                }
+              />
+              <input
+                className={styles.tweet_hiddenIcon}
+                type="file"
+                onChange={onChangeImageHandler}
+              />
+            </label>
+          </IconButton>
+        </div>
+        <Button
+          type="submit"
+          disabled={!tweetMsg}
+          className={
+            tweetMsg ? styles.tweet_sendBtn : styles.tweet_sendDisableBtn
+          }
+        >
+          Tweet
+        </Button>
+      </form>
+    </>
   );
 };
