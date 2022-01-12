@@ -19,12 +19,53 @@ interface PROPS {
   username: string;
 }
 
+interface COMMENT {
+  id: string;
+  avatar: string;
+  text: string;
+  timestamp: any;
+  username: string;
+}
+
 export const Post: React.FC<PROPS> = (props) => {
   const { postId, avatar, image, text, timestamp, username } = props;
 
   const user = useSelector(selectUser);
 
   const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<COMMENT[]>([
+    {
+      id: "",
+      avatar: "",
+      text: "",
+      username: "",
+      timestamp: null,
+    },
+  ]);
+
+  useEffect(() => {
+    const unSub = db
+      .collection("posts")
+      .doc(props.postId)
+      .collection("comments")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) => {
+        setComments(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            avatar: doc.data().avatar,
+            text: doc.data().text,
+            username: doc.data().username,
+            timestamp: doc.data().timestamp,
+          }))
+        );
+      });
+
+    return () => {
+      unSub();
+    };
+  }, [props.postId]);
+
   const newComment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     db.collection("posts").doc(postId).collection("comments").add({
@@ -36,6 +77,7 @@ export const Post: React.FC<PROPS> = (props) => {
     setComment("");
   };
 
+  console.log(comments);
   return (
     <div className={styles.post}>
       <div className={styles.post_avater}>
@@ -55,6 +97,18 @@ export const Post: React.FC<PROPS> = (props) => {
                 <img src={props.image} alt="tweet" />
               </div>
             )}
+
+            {comments.map((com) => (
+              <div key={com.id} className={styles.post_comment}>
+                <Avatar src={com.avatar} />
+
+                <span className={styles.post_commentUser}>@{com.username}</span>
+                <span className={styles.post_commentText}>{com.text} </span>
+                <span className={styles.post_headerTime}>
+                  {new Date(com.timestamp?.toDate()).toLocaleString()}
+                </span>
+              </div>
+            ))}
             <form onSubmit={newComment}>
               <div className={styles.post_form}>
                 <input
